@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — Страница не найдена</title>
+
+  <!-- Подключение Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Подключение шрифтов Space Grotesk и JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            paper: '#F3F2EE',
+            graphite: '#1C1E24',
+            acidLime: '#C8F560',
+            cobalt: '#2D5BFF',
+            mutedBg: '#E4E2DC',
+            mutedText: '#9B9991',
+            mutedBorder: '#D0CEC6',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Швейцарская архитектурная квадратная сетка на фоне тёплой бумаги */
+    .swiss-grid {
+      background-color: #F3F2EE;
+      background-image:
+        linear-gradient(to right, rgba(28, 30, 36, 0.065) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(28, 30, 36, 0.065) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-position: center center;
+    }
+
+    /* 3D-перспектива для сцены с папкой */
+    .folder-stage {
+      perspective: 1200px;
+    }
+
+    /* Контейнер параллакс-наклона папки */
+    .folder-rig {
+      transform-style: preserve-3d;
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+    }
+
+    /* Пружинистая анимация выдвижения карточек 4 - 0 - 4 */
+    .digit-tab {
+      transition:
+        transform 0.62s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.45s ease;
+      will-change: transform;
+    }
+
+    /* Исходное положение карточек (аккуратно утоплены внутри папки) */
+    .digit-tab-left {
+      transform: translate3d(14px, 30px, 4px) rotate(-4deg) scale(0.94);
+    }
+
+    .digit-tab-center {
+      transform: translate3d(0px, 34px, 8px) rotate(0deg) scale(0.95);
+    }
+
+    .digit-tab-right {
+      transform: translate3d(-14px, 30px, 4px) rotate(4deg) scale(0.94);
+    }
+
+    /* Активное состояние при наведении курсора или нажатии (.is-open) */
+    .folder-interactive:hover .digit-tab-left,
+    .folder-interactive.is-open .digit-tab-left {
+      transform: translate3d(-24px, -84px, 22px) rotate(-10deg) scale(1);
+    }
+
+    .folder-interactive:hover .digit-tab-center,
+    .folder-interactive.is-open .digit-tab-center {
+      transform: translate3d(0px, -98px, 32px) rotate(0deg) scale(1.03);
+    }
+
+    .folder-interactive:hover .digit-tab-right,
+    .folder-interactive.is-open .digit-tab-right {
+      transform: translate3d(24px, -84px, 22px) rotate(10deg) scale(1);
+    }
+
+    /* Передняя матовая кобальтовая обложка папки с 3D-наклоном вперёд */
+    .folder-front-cover {
+      transform-origin: bottom center;
+      transform-style: preserve-3d;
+      background: linear-gradient(
+        145deg,
+        rgba(45, 91, 255, 0.94) 0%,
+        rgba(34, 74, 224, 0.90) 60%,
+        rgba(24, 56, 185, 0.95) 100%
+      );
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition:
+        transform 0.58s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.45s ease;
+      will-change: transform;
+    }
+
+    .folder-interactive:hover .folder-front-cover,
+    .folder-interactive.is-open .folder-front-cover {
+      transform: rotateX(-18deg) translateY(3px);
+      box-shadow: 0 26px 42px -14px rgba(28, 30, 36, 0.42);
+    }
+
+    /* Деликатный световой градиент на лицевой панели */
+    .folder-lighting {
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.28) 0%, transparent 48%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 35%);
+    }
+
+    /* Строго неактивная кнопка «На главную» без ховер- и активных эффектов */
+    .btn-disabled-strict,
+    .btn-disabled-strict:hover,
+    .btn-disabled-strict:active,
+    .btn-disabled-strict:focus {
+      background-color: #E4E2DC !important;
+      color: #9B9991 !important;
+      border: 1px solid #D0CEC6 !important;
+      cursor: not-allowed !important;
+      transform: none !important;
+      box-shadow: none !important;
+      outline: none !important;
+      user-select: none;
+    }
+  </style>
+</head>
+<body class="swiss-grid text-graphite min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-acidLime selection:text-graphite">
+
+  <!-- Верхний технический HUD -->
+  <header class="w-full max-w-6xl mx-auto px-5 sm:px-8 pt-6 sm:pt-8 flex items-center justify-between font-mono text-[11px] sm:text-xs tracking-wider">
+    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-paper/90 border border-graphite/15 text-graphite font-bold">
+      <span class="w-2 h-2 rounded-full bg-cobalt"></span>
+      <span>SYS // ERR_404</span>
+    </div>
+
+    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-paper/90 border border-graphite/15 text-graphite/75 font-medium">
+      <span>PATH: /UNKNOWN</span>
+    </div>
+  </header>
+
+  <!-- Центральная секция с интерактивной 3D-папкой и текстом -->
+  <main class="flex-1 flex flex-col items-center justify-center px-4 py-10">
+
+    <!-- Сцена 3D-папки -->
+    <div class="folder-stage relative flex items-center justify-center mt-14 sm:mt-16 mb-8 sm:mb-10">
+      <div id="folder-rig" class="folder-rig">
+        <div
+          id="folder-interactive"
+          role="button"
+          tabindex="0"
+          aria-label="Интерактивная папка 404. Наведите курсор или нажмите, чтобы открыть"
+          class="folder-interactive group relative w-[270px] h-[190px] sm:w-[336px] sm:h-[232px] cursor-pointer select-none focus:outline-none"
+        >
+          <!-- Контактная тень под папкой -->
+          <div class="absolute -bottom-5 left-1/2 -translate-x-1/2 w-[84%] h-6 bg-graphite/20 blur-xl rounded-full transition-all duration-500 group-hover:w-[92%] group-[.is-open]:w-[92%]"></div>
+
+          <!-- СЛОЙ 1: Тёмно-графитовая задняя крышка (#1C1E24) с ярлычком слева сверху -->
+          <div class="absolute inset-0">
+            <!-- Классический верхний левый ярлычок папки -->
+            <div class="absolute -top-6 left-0 w-[44%] h-8 bg-graphite rounded-t-2xl border-t border-x border-white/10 flex items-center px-3.5 gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-acidLime"></span>
+              <span class="font-mono text-[10px] text-white/75 tracking-widest">DIR_04</span>
+            </div>
+            <!-- Основная задняя панель -->
+            <div class="w-full h-full bg-graphite rounded-2xl rounded-tl-none border border-graphite shadow-inner"></div>
+          </div>
+
+          <!-- СЛОЙ 2: Внутренний разделитель / акцентная полоса электрического лайма (#C8F560) -->
+          <div class="absolute inset-x-2.5 top-2.5 h-12 bg-acidLime rounded-t-xl border-t border-white/60 shadow-sm flex items-start justify-between px-3 pt-1.5">
+            <span class="font-mono text-[9px] font-bold text-graphite/80 tracking-widest">INDEX // NULL</span>
+            <span class="font-mono text-[9px] font-bold text-graphite/80">0x404</span>
+          </div>
+
+          <!-- СЛОЙ 3: Три смещённые картонные карточки с цифрами 4, 0, 4 -->
+          <div class="absolute inset-x-3 sm:inset-x-5 top-4 h-[145px] sm:h-[175px] flex items-center justify-center pointer-events-none">
+
+            <!-- Левая карточка: «4» (-10deg при открытии) -->
+            <div class="digit-tab digit-tab-left relative w-[80px] h-[112px] sm:w-[98px] sm:h-[136px] bg-[#FAF9F5] border border-graphite/20 rounded-xl shadow-[0_10px_24px_rgba(28,30,36,0.18)] flex flex-col justify-between p-2.5 sm:p-3">
+              <div class="flex items-center justify-between font-mono text-[8px] sm:text-[9px] text-graphite/45">
+                <span>TAB_01</span>
+                <span>—</span>
+              </div>
+              <div class="text-center text-5xl sm:text-6xl font-bold tracking-tighter text-graphite leading-none">
+                4
+              </div>
+              <div class="w-full h-1 bg-graphite/10 rounded-full"></div>
+            </div>
+
+            <!-- Центральная карточка: «0» (0deg при открытии) -->
+            <div class="digit-tab digit-tab-center relative -mx-2 z-10 w-[86px] h-[120px] sm:w-[106px] sm:h-[146px] bg-white border border-graphite/25 rounded-xl shadow-[0_14px_28px_rgba(28,30,36,0.22)] flex flex-col justify-between p-2.5 sm:p-3">
+              <div class="flex items-center justify-between font-mono text-[8px] sm:text-[9px] text-cobalt font-bold">
+                <span>VOID</span>
+                <span>•</span>
+              </div>
+              <div class="text-center text-5xl sm:text-6xl font-bold tracking-tighter text-graphite leading-none">
+                0
+              </div>
+              <div class="mx-auto px-2 py-0.5 rounded bg-acidLime font-mono text-[8px] font-bold text-graphite tracking-wider">
+                EMPTY
+              </div>
+            </div>
+
+            <!-- Правая карточка: «4» (+10deg при открытии) -->
+            <div class="digit-tab digit-tab-right relative w-[80px] h-[112px] sm:w-[98px] sm:h-[136px] bg-[#FAF9F5] border border-graphite/20 rounded-xl shadow-[0_10px_24px_rgba(28,30,36,0.18)] flex flex-col justify-between p-2.5 sm:p-3">
+              <div class="flex items-center justify-between font-mono text-[8px] sm:text-[9px] text-graphite/45">
+                <span>TAB_03</span>
+                <span>—</span>
+              </div>
+              <div class="text-center text-5xl sm:text-6xl font-bold tracking-tighter text-graphite leading-none">
+                4
+              </div>
+              <div class="w-full h-1 bg-graphite/10 rounded-full"></div>
+            </div>
+
+          </div>
+
+          <!-- СЛОЙ 4: Передняя матовая кобальтовая обложка (#2D5BFF) -->
+          <div class="folder-front-cover absolute inset-x-0 bottom-0 h-[82%] rounded-2xl border border-white/25 shadow-[0_18px_36px_-12px_rgba(28,30,36,0.38)] overflow-hidden flex flex-col justify-between p-4 sm:p-5 z-20">
+            <!-- Световые блики и градиенты поверхности -->
+            <div class="folder-lighting absolute inset-0 pointer-events-none"></div>
+
+            <!-- Верхняя техническая маркировка на крышке -->
+            <div class="relative flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-acidLime"></span>
+                <span class="w-2 h-2 rounded-full bg-white/30"></span>
+              </div>
+              <span class="font-mono text-[10px] text-white/75 tracking-widest">
+                ARCHIVE // 404
+              </span>
+            </div>
+
+            <!-- Тактильные минималистичные насечки -->
+            <div class="relative my-auto space-y-1.5 opacity-35">
+              <div class="w-10 h-0.5 bg-white rounded-full"></div>
+              <div class="w-6 h-0.5 bg-white rounded-full"></div>
+            </div>
+
+            <!-- Нижний шильдик папки -->
+            <div class="relative flex items-end justify-between">
+              <div>
+                <div class="font-mono text-[9px] text-white/65 tracking-widest uppercase">
+                  STATUS
+                </div>
+                <div class="font-mono text-xs sm:text-sm font-bold text-white tracking-wider">
+    <!-- Заголовок, подзаголовок и кнопки действий -->
+    <div class="text-center max-w-lg mx-auto px-2">
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-graphite mb-2.5">
+        Страница не найдена
+      </h1>
+      <p class="text-sm sm:text-base text-graphite/70 leading-relaxed mb-7">
+        Запрошенный файл отсутствует в директории.
+      </p>
+
+      <!-- Контейнер кнопок: неактивная «На главную» и интерактивная «Открыть папку» -->
+      <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+        <!-- Полностью неактивная / заблокированная кнопка «На главную» -->
+        <button
+          type="button"
+          id="home-disabled-btn"
+          disabled
+          aria-disabled="true"
+          tabindex="-1"
+          class="btn-disabled-strict inline-flex items-center justify-center px-6 sm:px-7 py-3 rounded-xl font-sans font-medium text-sm sm:text-base tracking-tight"
+        >
+          На главную
+        </button>
+
+        <!-- Восстановленная интерактивная кнопка «Открыть папку» / «Закрыть папку» -->
+        <button
+          type="button"
+          id="toggle-folder-btn"
+          aria-pressed="false"
+          class="inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3 rounded-xl font-sans font-medium text-sm sm:text-base tracking-tight bg-graphite text-paper border border-graphite shadow-[0_6px_0_#1C1E24] hover:bg-cobalt hover:border-cobalt hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-[0_2px_0_#1C1E24] transition-all duration-200 cursor-pointer"
+        >
+          <span id="toggle-btn-dot" class="w-2 h-2 rounded-full bg-acidLime transition-transform duration-300"></span>
+          <span id="toggle-btn-text">Открыть папку</span>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Нижний технический HUD с подсказкой -->
+  <footer class="w-full max-w-6xl mx-auto px-5 sm:px-8 pb-6 flex items-center justify-center sm:justify-between font-mono text-[11px] text-graphite/55 tracking-wider">
+    <span class="hidden sm:inline">GRID // SWISS-ARCH</span>
+    <span id="hud-hint">НАВЕДИТЕ КУРСОР НА ПАПКУ</span>
+    <span class="hidden sm:inline">STATUS: 404</span>
+  </footer>
+
+  <!-- Скрипт интерактивности: 3D-наклон за мышью, раскрытие папки и микро-клик Web Audio API -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const folderEl = document.getElementById('folder-interactive');
+      const folderRig = document.getElementById('folder-rig');
+      const hudHint = document.getElementById('hud-hint');
+      const disabledBtn = document.getElementById('home-disabled-btn');
+      const toggleFolderBtn = document.getElementById('toggle-folder-btn');
+      const toggleBtnText = document.getElementById('toggle-btn-text');
+      const toggleBtnDot = document.getElementById('toggle-btn-dot');
+
+      // Гарантированная блокировка любых попыток клика по неактивной кнопке
+      if (disabledBtn) {
+        disabledBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          return false;
+        });
+      }
+
+      // Адаптация текста подсказки для сенсорных экранов
+      const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      if (isTouchDevice && hudHint) {
+        hudHint.textContent = 'НАЖМИТЕ НА ПАПКУ ИЛИ КНОПКУ НИЖЕ';
+      }
+
+      // Безопасный синтез механического микро-щелчка через Web Audio API
+      let audioCtx = null;
+      function triggerMechanicalClick(opening) {
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return;
+
+          if (!audioCtx) {
+            audioCtx = new AudioContextClass();
+          }
+          if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+
+          const now = audioCtx.currentTime;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc.type = 'triangle';
+          if (opening) {
+            osc.frequency.setValueAtTime(320, now);
+            osc.frequency.exponentialRampToValueAtTime(680, now + 0.045);
+          } else {
+            osc.frequency.setValueAtTime(520, now);
+            osc.frequency.exponentialRampToValueAtTime(240, now + 0.045);
+          }
+
+          gain.gain.setValueAtTime(0.045, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.055);
+        } catch (err) {
+          // Безопасно игнорируем ограничения автовоспроизведения звука браузером
+        }
+      }
+
+      // Единая функция переключения и синхронизации состояния папки и кнопки
+      function setFolderOpenState(shouldOpen) {
+        folderEl.classList.toggle('is-open', shouldOpen);
+        triggerMechanicalClick(shouldOpen);
+
+        if (toggleFolderBtn && toggleBtnText) {
+          toggleFolderBtn.setAttribute('aria-pressed', String(shouldOpen));
+          toggleBtnText.textContent = shouldOpen ? 'Закрыть папку' : 'Открыть папку';
+
+          if (shouldOpen) {
+            toggleFolderBtn.classList.remove('bg-graphite', 'text-paper');
+            toggleFolderBtn.classList.add('bg-acidLime', 'text-graphite');
+            if (toggleBtnDot) {
+              toggleBtnDot.classList.remove('bg-acidLime');
+              toggleBtnDot.classList.add('bg-graphite', 'scale-125');
+            }
+          } else {
+            toggleFolderBtn.classList.remove('bg-acidLime', 'text-graphite');
+            toggleFolderBtn.classList.add('bg-graphite', 'text-paper');
+            if (toggleBtnDot) {
+              toggleBtnDot.classList.remove('bg-graphite', 'scale-125');
+              toggleBtnDot.classList.add('bg-acidLime');
+            }
+          }
+        }
+      }
+
+      // Открытие при наведении курсора (десктоп)
+      folderEl.addEventListener('mouseenter', () => {
+        if (!folderEl.classList.contains('is-open')) {
+          triggerMechanicalClick(true);
+        }
+      });
+
+      // Переключение фиксации папки по клику / тапу на саму папку
+      folderEl.addEventListener('click', () => {
+        const willOpen = !folderEl.classList.contains('is-open');
+        setFolderOpenState(willOpen);
+      });
+
+      // Переключение фиксации папки по нажатию на кнопку «Открыть папку» / «Закрыть папку»
+      if (toggleFolderBtn) {
+        toggleFolderBtn.addEventListener('click', () => {
+          const willOpen = !folderEl.classList.contains('is-open');
+          setFolderOpenState(willOpen);
+        });
+      }
+
+      // Поддержка клавиатуры (Enter / Пробел) для доступности папки
+      folderEl.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          const willOpen = !folderEl.classList.contains('is-open');
+          setFolderOpenState(willOpen);
+        }
+      });
+
+      // Лёгкий 3D-параллакс папки при движении курсора по экрану
+      window.addEventListener('mousemove', (event) => {
+        if (isTouchDevice) return;
+
+        const rect = folderEl.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const normX = (event.clientX - centerX) / (window.innerWidth / 2);
+        const normY = (event.clientY - centerY) / (window.innerHeight / 2);
+
+        const rotateY = Math.max(-12, Math.min(12, normX * 12));
+        const rotateX = Math.max(-9, Math.min(9, -normY * 9));
+
+        folderRig.style.transform = `rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`;
+      });
+
+      // Плавный возврат в исходное положение при выходе курсора за пределы окна
+      document.addEventListener('mouseleave', () => {
+        folderRig.style.transform = 'rotateX(0deg) rotateY(0deg)';
+      });
+    });
+  </script>
+</body>
+</html>
